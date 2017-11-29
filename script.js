@@ -15,6 +15,8 @@ function preload() {
     game.load.image('asteroid3', 'games/asteroids/asteroid3.png');
     game.load.image('bullets', 'games/asteroids/bullets.png');
     game.load.image('star', 'particlestorm/star.png');
+    game.load.image('friend', 'sprites/thrust_ship2.png');
+
 }
 
 var ship;
@@ -24,11 +26,10 @@ var asteroids2;
 var asteroids3;
 var bullets;
 var stars;
+var friends;
 var fire = false;
 
 function create() {
-
-
     ship = game.add.sprite(game.width / 2, game.height, 'ship');
     ship.anchor.set(0.5, 0.5);
 
@@ -69,12 +70,19 @@ function create() {
     stars.setAll('anchor.y', 0.5);
     stars.setAll('outOfBoundsKill', true);
     stars.setAll('checkWorldBounds', true);
+
+    friends = game.add.physicsGroup();
+    friends.createMultiple(1000, 'friend');
+    friends.setAll('anchor.y', 0.5);
+    friends.setAll('outOfBoundsKill', true);
+    friends.setAll('checkWorldBounds', true);
 }
 var x = 0,
     y = 5;
 var nextBulletTime = 0;
 var nextAsteroidTime = 0;
 var nextStarTime = 15000;
+var nextFriendTime = 9000;
 
 function update() {
     ship.body.velocity.x = 0;
@@ -117,15 +125,25 @@ function update() {
         var star;
         rand = Math.floor(Math.random() * game.width - 10);
         star = stars.getFirstExists(false);
-        nextStarTime = game.time.now + 50000;
+        nextStarTime = game.time.now + 15000;
         star.reset(rand, 0);
         star.body.velocity.y = 10;
+    }
+    if (game.time.now > nextFriendTime) {
+        var firend;
+        rand = Math.floor(Math.random() * game.width - 10);
+        friend = friends.getFirstExists(false);
+        nextFriendTime = game.time.now + 8000;
+        friend.reset(rand, 0);
+        friend.body.velocity.y = 10;
+        friend.angle = 180;
     }
 
     game.physics.arcade.collide(bullets, asteroids, bulletHitsAsteroid);
     game.physics.arcade.collide(bullets, asteroids2, bulletHitsAsteroid);
     game.physics.arcade.collide(bullets, asteroids3, bulletHitsAsteroid);
-    game.physics.arcade.collide(bullets, stars, bulletHitsAsteroid);
+    game.physics.arcade.collide(bullets, stars, bulletHitsStar);
+    game.physics.arcade.collide(bullets, friends, bulletHitsFriend);
 }
 
 
@@ -136,6 +154,12 @@ function bulletHitsAsteroid(bullet, asteroid) {
 
 function bulletHitsStar(bullet, star) {
     star.kill();
+    bullet.kill();
+    //todo logic
+}
+
+function bulletHitsFriend(bullet, friend) {
+    friend.kill();
     bullet.kill();
     //todo logic
 }
