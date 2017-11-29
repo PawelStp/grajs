@@ -4,7 +4,6 @@ var game = new Phaser.Game(window.innerWidth / 2, window.innerHeight, Phaser.AUT
     update: update
 });
 
-var rotation = 0;
 
 function preload() {
     game.load.baseURL = 'http://examples.phaser.io/assets/';
@@ -19,15 +18,16 @@ function preload() {
 
 }
 
-var ship;
-var cursors;
-var asteroids;
-var asteroids2;
-var asteroids3;
-var bullets;
-var stars;
-var friends;
-var fire = false;
+var ship,
+    cursors,
+    asteroids,
+    asteroids2,
+    asteroids3,
+    bullets,
+    stars,
+    friends,
+    fire = false,
+    rotation = 0;
 
 function create() {
     ship = game.add.sprite(game.width / 2, game.height, 'ship');
