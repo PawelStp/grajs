@@ -77,12 +77,13 @@ function create() {
     friends.setAll('outOfBoundsKill', true);
     friends.setAll('checkWorldBounds', true);
 }
+
 var x = 0,
-    y = 5;
-var nextBulletTime = 0;
-var nextAsteroidTime = 0;
-var nextStarTime = 15000;
-var nextFriendTime = 9000;
+    y = 5,
+    nextBulletTime = 0,
+    nextAsteroidTime = 0,
+    nextStarTime = 15000,
+    nextFriendTime = 9000;
 
 function update() {
     ship.body.velocity.x = 0;
@@ -93,15 +94,18 @@ function update() {
     } else if (cursors.right.isDown) {
         ship.body.velocity.x = 250;
     }
+
     if ((game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)).isDown) {
         fire = true;
     } else {
         fire = false;
     }
+
     if (game.time.now > nextAsteroidTime) {
-        var randAsteroid = Math.floor(Math.random() * 4);
-        var rand = Math.floor(Math.random() * game.width - 10);
-        var asteroid;
+        var randAsteroid = Math.floor(Math.random() * 4),
+            rand = Math.floor(Math.random() * game.width - 10),
+            asteroid;
+
         if (randAsteroid == 1) {
             asteroid = asteroids.getFirstExists(false);
         } else if (randAsteroid == 2) {
@@ -109,18 +113,21 @@ function update() {
         } else {
             asteroid = asteroids3.getFirstExists(false);
         }
+
         asteroid.reset(rand, 0);
         asteroid.body.velocity.y = 10;
 
         nextAsteroidTime = game.time.now + 2000;
     }
+
     if (fire && game.time.now > nextBulletTime) {
         var bullet = bullets.getFirstExists(false);
+
         bullet.reset(ship.x - 3, ship.y - ship.body.height / 2);
         bullet.body.velocity.y -= 100;
         nextBulletTime = game.time.now + 300;
-
     }
+
     if (game.time.now > nextStarTime) {
         var star;
         rand = Math.floor(Math.random() * game.width - 10);
@@ -129,8 +136,10 @@ function update() {
         star.reset(rand, 0);
         star.body.velocity.y = 10;
     }
+
     if (game.time.now > nextFriendTime) {
         var firend;
+
         rand = Math.floor(Math.random() * game.width - 10);
         friend = friends.getFirstExists(false);
         nextFriendTime = game.time.now + 8000;
@@ -146,7 +155,6 @@ function update() {
     game.physics.arcade.collide(bullets, friends, bulletHitsFriend);
     game.physics.arcade.collide(ship, friends, collisionWithShip);
 }
-
 
 function bulletHitsAsteroid(bullet, asteroid) {
     asteroid.kill();
