@@ -1,9 +1,8 @@
-var game = new Phaser.Game(window.innerWidth / 2, window.innerHeight, Phaser.AUTO, '',
-    {
-        preload: preload,
-        create: create,
-        update: update
-    });
+var game = new Phaser.Game(window.innerWidth / 2, window.innerHeight, Phaser.AUTO, '', {
+    preload: preload,
+    create: create,
+    update: update
+});
 
 var rotation = 0;
 
@@ -63,28 +62,36 @@ function create() {
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('checkWorldBounds', true);
 }
-var x = 0, y = 5;
+var x = 0,
+    y = 5;
 var nextBulletTime = 0;
 var nextAsteroidTime = 0;
+
 function update() {
     ship.body.velocity.x = 0;
     rotation += 1;
 
     if (cursors.left.isDown) {
         ship.body.velocity.x = -250;
-    }
-    else if (cursors.right.isDown) {
+    } else if (cursors.right.isDown) {
         ship.body.velocity.x = 250;
     }
     if ((game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)).isDown) {
         fire = true;
-    }
-    else {
+    } else {
         fire = false;
     }
     if (game.time.now > nextAsteroidTime) {
+        var randAsteroid = Math.floor(Math.random() * 4);
         var rand = Math.floor(Math.random() * game.width - 10);
-        var asteroid = asteroids.getFirstExists(false);
+        var asteroid;
+        if (randAsteroid == 1) {
+            asteroid = asteroids.getFirstExists(false);
+        } else if (randAsteroid == 2) {
+            asteroid = asteroids2.getFirstExists(false);
+        } else {
+            asteroid = asteroids3.getFirstExists(false);
+        }
         asteroid.reset(rand, 0);
         asteroid.body.velocity.y = 10;
 
@@ -99,7 +106,8 @@ function update() {
     }
 
     game.physics.arcade.collide(bullets, asteroids, bulletHitsAsteroid);
-
+    game.physics.arcade.collide(bullets, asteroids2, bulletHitsAsteroid);
+    game.physics.arcade.collide(bullets, asteroids3, bulletHitsAsteroid);
 }
 
 
