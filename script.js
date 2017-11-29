@@ -144,6 +144,7 @@ function update() {
     game.physics.arcade.collide(bullets, asteroids3, bulletHitsAsteroid);
     game.physics.arcade.collide(bullets, stars, bulletHitsStar);
     game.physics.arcade.collide(bullets, friends, bulletHitsFriend);
+    game.physics.arcade.collide(ship, friends, collisionWithShip);
 }
 
 
@@ -161,5 +162,10 @@ function bulletHitsStar(bullet, star) {
 function bulletHitsFriend(bullet, friend) {
     friend.kill();
     bullet.kill();
+    //todo logic
+}
+
+function collisionWithShip(myShip, friend) {
+    friend.kill();
     //todo logic
 }
