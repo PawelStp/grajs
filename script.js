@@ -72,7 +72,7 @@ var mainState = function (gae) {
 mainState.prototype = {
 
     create: function () {
-        var startInstructions = 'Dowolny przycisk kliknij aby zaczac';
+        var startInstructions = 'Kliknij aby zaczac';
 
         this.tf_start = game.add.text(game.world.centerX, game.world.centerY, startInstructions, fontAssets.counterFontStyle);
         this.tf_start.align = 'center';
