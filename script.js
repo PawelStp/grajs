@@ -1,7 +1,7 @@
 var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, '');
 
 var gameProperties = {
-    width: window.innerWidth ,
+    width: window.innerWidth,
     height: window.innerHeight
 };
 
@@ -13,7 +13,8 @@ var shipProperties = {
     maxVelocity: 300,
     angularVelocity: 200,
     lives: 3,
-    deadTime: 3
+    deadTime: 3,
+    isLive: true,
 };
 
 var bulletProperties = {
@@ -21,19 +22,18 @@ var bulletProperties = {
     interval: 250,
     lifespan: 2000,
     maxCount: 50,
+    destroyed: 0
 };
 
 var asteroidProperties = {
     startingAsteroid: 2,
-    maxAsteroids: 100,
-    incrementAsteroids: 2,
-
     asteroid1: {
         minVelocity: 50,
         maxVelocity: 150,
         minAngularVelocity: 0,
         maxAngularVelocity: 200,
         score: 20,
+        exists: 0
     },
     asteroid2: {
         minVelocity: 50,
@@ -41,6 +41,7 @@ var asteroidProperties = {
         minAngularVelocity: 0,
         maxAngularVelocity: 200,
         score: 30,
+        exists: 0
     },
     asteroid3: {
         minVelocity: 50,
@@ -48,12 +49,13 @@ var asteroidProperties = {
         minAngularVelocity: 0,
         maxAngularVelocity: 200,
         score: 50,
+        exists: 0
     }
 }
 
 
 var fontAssets = {
-    counterFontStyle: { font: '20px Arial', fill: '#FFFFFF', align: 'center' },
+    counterFontStyle: { font: '40px Arial', fill: '#FFFFFF', align: 'center' },
 };
 
 var states = {
@@ -105,9 +107,10 @@ gameState.prototype = {
 
 
     update: function () {
+
         this.checkPlayerInput();
         this.checkBoundaries(this.ship);
-        // this.bullets.forEachExists(this.checkBoundaries, this);
+        this.bullets.forEachExists(this.checkBoundaries, this);
         this.asteroids.forEachExists(this.checkBoundaries, this);
 
 
@@ -164,7 +167,7 @@ gameState.prototype = {
             this.ship.body.acceleration.set(0);
         }
 
-        if (this.keySpace.isDown) {
+        if (this.keySpace.isDown && shipProperties.isLive) {
             this.fire();
         }
     },
@@ -210,6 +213,7 @@ gameState.prototype = {
             var asteroid = this.asteroids.create(x, y, type);
             asteroid.anchor.set(0.5, 0.5);
             asteroid.body.angularVelocity = game.rnd.integerInRange(asteroidProperties[type].minAngularVelocity, asteroidProperties[type].maxAngularVelocity);
+            asteroidProperties[type].exists++;
 
             var randomAngle = game.math.degToRad(game.rnd.angle());
             var randomVelocity = game.rnd.integerInRange(asteroidProperties[type].minVelocity, asteroidProperties[type].maxVelocity);
@@ -219,31 +223,37 @@ gameState.prototype = {
     },
 
     resetAsteroids: function (name) {
-        for (var i = 0; i < this.asteroidsCount; i++) {
-            var side = Math.round(Math.random());
-            var x;
-            var y;
+        if (asteroidProperties[name].exists <= bulletProperties.destroyed * 2) {
+            for (var i = 0; i < this.asteroidsCount; i++) {
+                var side = Math.round(Math.random());
+                var x;
+                var y;
 
-            if (side) {
-                x = Math.round(Math.random()) * gameProperties.screenWidth;
-                y = Math.round() * gameProperties.screeHeight;
-            } else {
-                x = Math.round() * gameProperties.screenWidth;
-                y = Math.round(Math.random()) * gameProperties.screeHeight;
+                if (side) {
+                    x = Math.round(Math.random()) * gameProperties.screenWidth;
+                    y = Math.round() * gameProperties.screeHeight;
+                } else {
+                    x = Math.round() * gameProperties.screenWidth;
+                    y = Math.round(Math.random()) * gameProperties.screeHeight;
+                }
+                this.createAsteroid(x, y, name);
             }
-            this.createAsteroid(x, y, name);
         }
     },
 
     bulletHitsAsteroid: function (bullet, asteroid) {
         bullet.kill();
         asteroid.kill();
+        this.resetAsteroids(asteroid.key);
+
+        bulletProperties.destroyed++;1
     },
 
     shipHitsAsteroid: function (ship, asteroid) {
         ship.kill();
         asteroid.kill();
 
+        shipProperties.isLive = false;
         this.shipLives--;
         this.tf_lives.text = this.shipLives;
 
@@ -258,6 +268,7 @@ gameState.prototype = {
         this.ship.anchor.set(0.5, 0.5);
 
         game.physics.enable(this.ship, Phaser.Physics.ARCADE);
+        shipProperties.isLive = true;
     },
 
 }
