@@ -32,7 +32,7 @@ var asteroidProperties = {
         maxVelocity: 150,
         minAngularVelocity: 0,
         maxAngularVelocity: 200,
-        score: 20,
+        score: 10,
         exists: 0
     },
     asteroid2: {
@@ -40,14 +40,14 @@ var asteroidProperties = {
         maxVelocity: 250,
         minAngularVelocity: 0,
         maxAngularVelocity: 200,
-        score: 30,
+        score: 20,
         exists: 0
     },
     asteroid3: {
         minVelocity: 50,
-        maxVelocity: 350,
+        maxVelocity: 450,
         minAngularVelocity: 0,
-        maxAngularVelocity: 200,
+        maxAngularVelocity: 300,
         score: 50,
         exists: 0
     }
@@ -79,6 +79,8 @@ var gameState = function (game) {
     this.shipLives = shipProperties.lives;
     this.tf_lives;
 
+    this.score = 0;
+    this.tf_score;
 };
 gameState.prototype = {
 
@@ -128,7 +130,13 @@ gameState.prototype = {
         this.asteroids = game.add.group();
 
         this.tf_lives = game.add.text(20, 10, shipProperties.lives, fontAssets.counterFontStyle);
+
+        this.tf_score = game.add.text(gameProperties.width - 100, 10, "0", fontAssets.counterFontStyle);
+        this.tf_score.align = 'right';
+        this.tf_score.anchor.set(1, 0);
+
     },
+
     initPhysics: function () {
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.physics.enable(this.ship, Phaser.Physics.ARCADE);
@@ -145,6 +153,7 @@ gameState.prototype = {
         this.asteroids.enableBody = true;
         this.asteroids.physicsBodyType = Phaser.Physics.ARCADE;
     },
+
     initKeyboard: function () {
         this.keyLeft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
         this.keyRight = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
@@ -244,9 +253,10 @@ gameState.prototype = {
     bulletHitsAsteroid: function (bullet, asteroid) {
         bullet.kill();
         asteroid.kill();
-        this.resetAsteroids(asteroid.key);
 
-        bulletProperties.destroyed++;1
+        this.resetAsteroids(asteroid.key);
+        this.updateScore(asteroidProperties[asteroid.key].score);
+        bulletProperties.destroyed++; 1
     },
 
     shipHitsAsteroid: function (ship, asteroid) {
@@ -270,6 +280,11 @@ gameState.prototype = {
         game.physics.enable(this.ship, Phaser.Physics.ARCADE);
         shipProperties.isLive = true;
     },
+
+    updateScore: function (score) {
+        this.score += score;
+        this.tf_score.text = this.score;
+    }
 
 }
 game.state.add(states.game, gameState);
