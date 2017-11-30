@@ -1,5 +1,10 @@
 var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, '');
 
+var states = {
+    game: "game",
+    main: "main",
+};
+
 var gameProperties = {
     width: window.innerWidth,
     height: window.innerHeight
@@ -60,8 +65,25 @@ var fontAssets = {
     counterFontStyle: { font: '40px Arial', fill: '#FFFFFF', align: 'center' },
 };
 
-var states = {
-    game: "game",
+
+var mainState = function (gae) {
+    this.tf_start;
+}
+mainState.prototype = {
+
+    create: function () {
+        var startInstructions = 'Dowolny przycisk kliknij aby zaczac';
+
+        this.tf_start = game.add.text(game.world.centerX, game.world.centerY, startInstructions, fontAssets.counterFontStyle);
+        this.tf_start.align = 'center';
+        this.tf_start.anchor.set(0.5, 0.5);
+
+        game.input.onDown.addOnce(this.startGame, this);
+    },
+
+    startGame: function () {
+        game.state.start(states.game);
+    }
 };
 
 var gameState = function (game) {
@@ -244,7 +266,7 @@ gameState.prototype = {
     },
 
     resetAsteroids: function (name) {
-        if (asteroidProperties[name].exists <= bulletProperties.destroyed * 2) {
+        if (asteroidProperties[name].exists <= bulletProperties.destroyed * 1.2) {
             for (var i = 0; i < this.asteroidsCount; i++) {
                 var side = Math.round(Math.random());
                 var x;
@@ -285,7 +307,13 @@ gameState.prototype = {
 
         if (this.shipLives) {
             game.time.events.add(Phaser.Timer.SECOND * shipProperties.deadTime, this.resetShip, this);
+        }else{
+            game.time.events.add(Phaser.Timer.SECOND * shipProperties.deadTime, this.endGame, this);
+            
         }
+        var exp = this.explosion.getFirstExists(false);
+        exp.reset(ship.x, ship.y);
+        exp.animations.play('explode', null, false, true);
     },
 
     resetShip: function () {
@@ -313,8 +341,13 @@ gameState.prototype = {
     updateScore: function (score) {
         this.score += score;
         this.tf_score.text = this.score;
+    },
+
+    endGame: function () {
+        game.state.start(states.main);
     }
 
 }
 game.state.add(states.game, gameState);
-game.state.start(states.game);
+game.state.add(states.main, mainState);
+game.state.start(states.main);
