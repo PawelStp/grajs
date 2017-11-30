@@ -1,212 +1,265 @@
-var game = new Phaser.Game(window.innerWidth / 2, window.innerHeight, Phaser.AUTO, '', {
-    preload: preload,
-    create: create,
-    update: update
-});
+var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, '');
 
-
-function preload() {
-    game.load.baseURL = 'http://examples.phaser.io/assets/';
-    game.load.crossOrigin = 'anonymous';
-    game.load.image('ship', 'games/asteroids/ship.png');
-    game.load.image('asteroid1', 'games/asteroids/asteroid1.png');
-    game.load.image('asteroid2', 'games/asteroids/asteroid2.png');
-    game.load.image('asteroid3', 'games/asteroids/asteroid3.png');
-    game.load.image('bullets', 'games/asteroids/bullets.png');
-    game.load.image('star', 'particlestorm/star.png');
-    game.load.image('friend', 'sprites/thrust_ship2.png');
-    game.load.image('life', 'particlestorm/heart.png');
-
-}
-
-var ship,
-    cursors,
-    asteroids,
-    asteroids2,
-    asteroids3,
-    bullets,
-    stars,
-    friends,
-    lifes,
-    fire = false,
-    rotation = 0;
-
-var player = {
-    score: 0,
-    lifes: 3
+var gameProperties = {
+    width: window.innerWidth ,
+    height: window.innerHeight
 };
 
-function create() {
-    ship = game.add.sprite(game.width / 2, game.height, 'ship');
-    ship.anchor.set(0.5, 0.5);
+var shipProperties = {
+    startX: gameProperties.width * 0.5,
+    startY: gameProperties.height * 0.5,
+    accleration: 300,
+    drag: 100,
+    maxVelocity: 300,
+    angularVelocity: 200,
+    lives: 3,
+    deadTime: 3
+};
 
-    game.physics.arcade.enable(ship);
-    ship.angle = 270;
-    ship.body.collideWorldBounds = true;
-    cursors = game.input.keyboard.createCursorKeys();
+var bulletProperties = {
+    speed: 500,
+    interval: 250,
+    lifespan: 2000,
+    maxCount: 50,
+};
 
-    asteroids = game.add.physicsGroup();
-    asteroids.createMultiple(1000, 'asteroid1');
-    asteroids.setAll('anchor.y', 0.5);
-    asteroids.setAll('outOfBoundsKill', true);
-    asteroids.setAll('checkWorldBounds', true);
-    asteroids.setAll('angle', rotation);
+var asteroidProperties = {
+    startingAsteroid: 2,
+    maxAsteroids: 100,
+    incrementAsteroids: 2,
 
-    asteroids2 = game.add.physicsGroup();
-    asteroids2.createMultiple(1000, 'asteroid2');
-    asteroids2.setAll('anchor.y', 0.5);
-    asteroids2.setAll('outOfBoundsKill', true);
-    asteroids2.setAll('checkWorldBounds', true);
-    asteroids2.setAll('body.velocity.y', 100);
-
-    asteroids3 = game.add.physicsGroup();
-    asteroids3.createMultiple(1000, 'asteroid3');
-    asteroids3.setAll('anchor.y', 0.5);
-    asteroids3.setAll('outOfBoundsKill', true);
-    asteroids3.setAll('checkWorldBounds', true);
-    asteroids3.setAll('body.velocity.y', 100);
-
-    bullets = game.add.physicsGroup();
-    bullets.createMultiple(1000, 'bullets');
-    bullets.setAll('anchor.y', 0.5);
-    bullets.setAll('outOfBoundsKill', true);
-    bullets.setAll('checkWorldBounds', true);
-
-    stars = game.add.physicsGroup();
-    stars.createMultiple(1000, 'star');
-    stars.setAll('anchor.y', 0.5);
-    stars.setAll('outOfBoundsKill', true);
-    stars.setAll('checkWorldBounds', true);
-
-    friends = game.add.physicsGroup();
-    friends.createMultiple(1000, 'friend');
-    friends.setAll('anchor.y', 0.5);
-    friends.setAll('outOfBoundsKill', true);
-    friends.setAll('checkWorldBounds', true);
-
-    lifes = game.add.physicsGroup();
-    lifes.createMultiple(1000, 'life');
-    lifes.setAll('anchor.y', 0.5);
-    lifes.setAll('outOfBoundsKill', true);
-    lifes.setAll('checkWorldBounds', true);
+    asteroid1: {
+        minVelocity: 50,
+        maxVelocity: 150,
+        minAngularVelocity: 0,
+        maxAngularVelocity: 200,
+        score: 20,
+    },
+    asteroid2: {
+        minVelocity: 50,
+        maxVelocity: 250,
+        minAngularVelocity: 0,
+        maxAngularVelocity: 200,
+        score: 30,
+    },
+    asteroid3: {
+        minVelocity: 50,
+        maxVelocity: 350,
+        minAngularVelocity: 0,
+        maxAngularVelocity: 200,
+        score: 50,
+    }
 }
 
-var x = 0,
-    y = 5,
-    nextBulletTime = 0,
-    nextAsteroidTime = 0,
-    nextStarTime = 15000,
-    nextFriendTime = 9000,
-    nextLifeTime = 20000;
 
-function update() {
-    ship.body.velocity.x = 0;
-    rotation += 1;
+var fontAssets = {
+    counterFontStyle: { font: '20px Arial', fill: '#FFFFFF', align: 'center' },
+};
 
-    if (cursors.left.isDown) {
-        ship.body.velocity.x = -250;
-    } else if (cursors.right.isDown) {
-        ship.body.velocity.x = 250;
-    }
+var states = {
+    game: "game",
+};
 
-    if ((game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)).isDown) {
-        fire = true;
-    } else {
-        fire = false;
-    }
+var gameState = function (game) {
+    this.ship;
 
-    if (game.time.now > nextAsteroidTime) {
-        var randAsteroid = Math.floor(Math.random() * 4),
-            rand = Math.floor(Math.random() * game.width - 10),
-            asteroid;
+    this.keyLeft;
+    this.keyUp;
+    this.keyRight;
+    this.keySpace;
 
-        if (randAsteroid == 1) {
-            asteroid = asteroids.getFirstExists(false);
-        } else if (randAsteroid == 2) {
-            asteroid = asteroids2.getFirstExists(false);
+    this.bullets;
+    this.bulletInterval = 0;
+
+    this.asteroids;
+    this.asteroidsCount = asteroidProperties.startingAsteroid;
+
+    this.shipLives = shipProperties.lives;
+    this.tf_lives;
+
+};
+gameState.prototype = {
+
+    preload: function () {
+        game.load.baseURL = 'http://examples.phaser.io/assets/';
+        game.load.crossOrigin = 'anonymous';
+        game.load.image('ship', 'games/asteroids/ship.png');
+        game.load.image('asteroid1', 'games/asteroids/asteroid1.png');
+        game.load.image('asteroid2', 'games/asteroids/asteroid2.png');
+        game.load.image('asteroid3', 'games/asteroids/asteroid3.png');
+        game.load.image('bullets', 'games/asteroids/bullets.png');
+        game.load.image('star', 'particlestorm/star.png');
+        game.load.image('friend', 'sprites/thrust_ship2.png');
+        game.load.image('life', 'particlestorm/heart.png');
+
+    },
+
+    create: function () {
+        this.initGraphics();
+        this.initPhysics();
+        this.initKeyboard();
+        this.resetAsteroids('asteroid1');
+        this.resetAsteroids('asteroid2');
+        this.resetAsteroids('asteroid3');
+    },
+
+
+    update: function () {
+        this.checkPlayerInput();
+        this.checkBoundaries(this.ship);
+        // this.bullets.forEachExists(this.checkBoundaries, this);
+        this.asteroids.forEachExists(this.checkBoundaries, this);
+
+
+        game.physics.arcade.overlap(this.bullets, this.asteroids, this.bulletHitsAsteroid, null, this);
+        game.physics.arcade.overlap(this.ship, this.asteroids, this.shipHitsAsteroid, null, this);
+
+    },
+
+    initGraphics: function () {
+        this.ship = game.add.sprite(shipProperties.startX, shipProperties.startY, 'ship');
+        this.ship.angle = 270;
+        this.ship.anchor.set(0.5, 0.5);
+
+        this.bullets = game.add.group();
+        this.asteroids = game.add.group();
+
+        this.tf_lives = game.add.text(20, 10, shipProperties.lives, fontAssets.counterFontStyle);
+    },
+    initPhysics: function () {
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        game.physics.enable(this.ship, Phaser.Physics.ARCADE);
+
+        this.ship.body.drag.set(shipProperties.drag);
+        this.ship.body.maxVelocity.set(shipProperties.maxVelocity);
+
+        this.bullets.enableBody = true;
+        this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
+        this.bullets.createMultiple(bulletProperties.maxCount, 'bullets');
+        this.bullets.setAll('anchor', { x: 0.5, y: 0.5 });
+        this.bullets.setAll('lifespan', bulletProperties.lifespan);
+
+        this.asteroids.enableBody = true;
+        this.asteroids.physicsBodyType = Phaser.Physics.ARCADE;
+    },
+    initKeyboard: function () {
+        this.keyLeft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+        this.keyRight = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
+        this.keyUp = game.input.keyboard.addKey(Phaser.Keyboard.UP);
+        this.keySpace = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    },
+
+    checkPlayerInput: function () {
+        if (this.keyLeft.isDown) {
+            this.ship.body.angularVelocity = -shipProperties.angularVelocity;
+        } else if (this.keyRight.isDown) {
+            this.ship.body.angularVelocity = shipProperties.angularVelocity;
         } else {
-            asteroid = asteroids3.getFirstExists(false);
+            this.ship.body.angularVelocity = 0;
         }
 
-        asteroid.reset(rand, 0);
-        asteroid.body.velocity.y = 10;
+        if (this.keyUp.isDown) {
+            game.physics.arcade.accelerationFromRotation(this.ship.rotation, shipProperties.acceleration, this.ship.body.acceleration);
+        } else {
+            this.ship.body.acceleration.set(0);
+        }
 
-        nextAsteroidTime = game.time.now + 2000;
-    }
+        if (this.keySpace.isDown) {
+            this.fire();
+        }
+    },
 
-    if (fire && game.time.now > nextBulletTime) {
-        var bullet = bullets.getFirstExists(false);
+    checkBoundaries: function (sprite) {
+        if (sprite.x < 0) {
+            sprite.x = game.width;
+        } else if (sprite.x > game.width) {
+            sprite.x = 0;
+        }
 
-        bullet.reset(ship.x - 3, ship.y - ship.body.height / 2);
-        bullet.body.velocity.y -= 100;
-        nextBulletTime = game.time.now + 300;
-    }
+        if (sprite.y < 0) {
+            sprite.y = game.height;
+        } else if (sprite.y > game.height) {
+            sprite.y = 0;
+        }
+    },
 
-    if (game.time.now > nextStarTime) {
-        var star;
+    fire: function () {
+        if (game.time.now > this.bulletInterval) {
+            var bullet = this.bullets.getFirstExists(false);
 
-        rand = Math.floor(Math.random() * game.width - 10);
-        star = stars.getFirstExists(false);
-        nextStarTime = game.time.now + 15000;
-        star.reset(rand, 0);
-        star.body.velocity.y = 10;
-    }
+            if (bullet) {
+                var length = this.ship.width * 0.5;
+                var x = this.ship.x + (Math.cos(this.ship.rotation) * length);
+                var y = this.ship.y + (Math.sin(this.ship.rotation) * length);
 
-    if (game.time.now > nextFriendTime) {
-        var firend;
+                bullet.reset(x, y);
+                bullet.lifespan = bulletProperties.lifespan;
+                bullet.rotation = this.ship.rotation;
 
-        rand = Math.floor(Math.random() * game.width - 10);
-        friend = friends.getFirstExists(false);
-        nextFriendTime = game.time.now + 8000;
-        friend.reset(rand, 0);
-        friend.body.velocity.y = 10;
-        friend.angle = 180;
-    }
+                game.physics.arcade.velocityFromRotation(this.ship.rotation, bulletProperties.speed, bullet.body.velocity);
+                this.bulletInterval = game.time.now + bulletProperties.interval;
+            }
+        }
+    },
 
-    if (game.time.now > nextLifeTime) {
-        var life;
+    createAsteroid: function (x, y, type, count) {
+        if (count === undefined) {
+            count = 1;
+        }
+        for (var i = 0; i < count; i++) {
+            var asteroid = this.asteroids.create(x, y, type);
+            asteroid.anchor.set(0.5, 0.5);
+            asteroid.body.angularVelocity = game.rnd.integerInRange(asteroidProperties[type].minAngularVelocity, asteroidProperties[type].maxAngularVelocity);
 
-        rand = Math.floor(Math.random() * game.width - 10);
-        life = lifes.getFirstExists(false);
-        nextLifeTime = game.time.now + 20000;
-        life.reset(rand, 0);
-        life.body.velocity.y = 10;
-    }
+            var randomAngle = game.math.degToRad(game.rnd.angle());
+            var randomVelocity = game.rnd.integerInRange(asteroidProperties[type].minVelocity, asteroidProperties[type].maxVelocity);
 
-    game.physics.arcade.collide(bullets, asteroids, bulletHitsAsteroid);
-    game.physics.arcade.collide(bullets, asteroids2, bulletHitsAsteroid);
-    game.physics.arcade.collide(bullets, asteroids3, bulletHitsAsteroid);
-    game.physics.arcade.collide(bullets, stars, bulletHitsStar);
-    game.physics.arcade.collide(bullets, friends, bulletHitsFriend);
-    game.physics.arcade.collide(ship, friends, collisionWithShip);
-    game.physics.arcade.collide(bullets, lifes, bulletHitsLife)
+            game.physics.arcade.velocityFromRotation(randomAngle, randomVelocity, asteroid.body.velocity);
+        }
+    },
+
+    resetAsteroids: function (name) {
+        for (var i = 0; i < this.asteroidsCount; i++) {
+            var side = Math.round(Math.random());
+            var x;
+            var y;
+
+            if (side) {
+                x = Math.round(Math.random()) * gameProperties.screenWidth;
+                y = Math.round() * gameProperties.screeHeight;
+            } else {
+                x = Math.round() * gameProperties.screenWidth;
+                y = Math.round(Math.random()) * gameProperties.screeHeight;
+            }
+            this.createAsteroid(x, y, name);
+        }
+    },
+
+    bulletHitsAsteroid: function (bullet, asteroid) {
+        bullet.kill();
+        asteroid.kill();
+    },
+
+    shipHitsAsteroid: function (ship, asteroid) {
+        ship.kill();
+        asteroid.kill();
+
+        this.shipLives--;
+        this.tf_lives.text = this.shipLives;
+
+        if (this.shipLives) {
+            game.time.events.add(Phaser.Timer.SECOND * shipProperties.deadTime, this.resetShip, this);
+        }
+    },
+
+    resetShip: function () {
+        this.ship = game.add.sprite(shipProperties.startX, shipProperties.startY, 'ship');
+        this.ship.angle = 270;
+        this.ship.anchor.set(0.5, 0.5);
+
+        game.physics.enable(this.ship, Phaser.Physics.ARCADE);
+    },
+
 }
-
-function bulletHitsAsteroid(bullet, asteroid) {
-    asteroid.kill();
-    bullet.kill();
-    player.score += 1;
-}
-
-function bulletHitsStar(bullet, star) {
-    star.kill();
-    bullet.kill();
-    //todo logic
-}
-
-function bulletHitsFriend(bullet, friend) {
-    friend.kill();
-    bullet.kill();
-    player.lifes -= 1;
-}
-
-function collisionWithShip(myShip, friend) {
-    friend.kill();
-    player.lifes -= 1;
-}
-
-function bulletHitsLife(bullet, life) {
-    life.kill();
-    bullet.kill();
-    player.lifes += 1;
-}
+game.state.add(states.game, gameState);
+game.state.start(states.game);
