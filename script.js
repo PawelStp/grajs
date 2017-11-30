@@ -15,6 +15,8 @@ var shipProperties = {
     lives: 3,
     deadTime: 3,
     isLive: true,
+    isReady: true,
+    blinkDelay: 0.2
 };
 
 var bulletProperties = {
@@ -81,6 +83,8 @@ var gameState = function (game) {
 
     this.score = 0;
     this.tf_score;
+
+    this.explosion;
 };
 gameState.prototype = {
 
@@ -95,6 +99,7 @@ gameState.prototype = {
         game.load.image('star', 'particlestorm/star.png');
         game.load.image('friend', 'sprites/thrust_ship2.png');
         game.load.image('life', 'particlestorm/heart.png');
+        game.load.spritesheet('explosion', '/games/tanks/explosion.png', 64, 64, 23);
 
     },
 
@@ -117,8 +122,9 @@ gameState.prototype = {
 
 
         game.physics.arcade.overlap(this.bullets, this.asteroids, this.bulletHitsAsteroid, null, this);
-        game.physics.arcade.overlap(this.ship, this.asteroids, this.shipHitsAsteroid, null, this);
-
+        if (shipProperties.isReady) {
+            game.physics.arcade.overlap(this.ship, this.asteroids, this.shipHitsAsteroid, null, this);
+        }
     },
 
     initGraphics: function () {
@@ -152,6 +158,12 @@ gameState.prototype = {
 
         this.asteroids.enableBody = true;
         this.asteroids.physicsBodyType = Phaser.Physics.ARCADE;
+
+        this.explosion = game.add.group();
+        this.explosion.createMultiple(20, 'explosion', 0);
+        this.explosion.setAll('anchor.x', 0.5);
+        this.explosion.setAll('anchor.y', 0.5);
+        this.explosion.callAll('animations.add', 'animations', 'explode', null, 30);
     },
 
     initKeyboard: function () {
@@ -256,7 +268,11 @@ gameState.prototype = {
 
         this.resetAsteroids(asteroid.key);
         this.updateScore(asteroidProperties[asteroid.key].score);
-        bulletProperties.destroyed++; 1
+        bulletProperties.destroyed++;
+
+        var exp = this.explosion.getFirstExists(false);
+        exp.reset(asteroid.x, asteroid.y);
+        exp.animations.play('explode', null, false, true);
     },
 
     shipHitsAsteroid: function (ship, asteroid) {
@@ -279,6 +295,19 @@ gameState.prototype = {
 
         game.physics.enable(this.ship, Phaser.Physics.ARCADE);
         shipProperties.isLive = true;
+        shipProperties.isReady = false;
+
+        game.time.events.add(Phaser.Timer.SECOND * 3, this.shipReady, this);
+        game.time.events.repeat(Phaser.Timer.SECOND * shipProperties.blinkDelay, 3 / shipProperties.blinkDelay, this.shipBlink, this);
+    },
+
+    shipReady: function () {
+        shipProperties.isReady = true;
+        this.ship.visible = true;
+    },
+
+    shipBlink: function () {
+        this.ship.visible = !this.ship.visible;
     },
 
     updateScore: function (score) {
