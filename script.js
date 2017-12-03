@@ -61,7 +61,8 @@ var fontAssets = {
     counterFontStyle: { font: '40px Arial', fill: '#FFFFFF', align: 'center' },
 };
 
-var bestScore=0;
+var score = 0;
+var bestScore = 0;
 
 var mainState = function (game) {
     this.tf_start;
@@ -73,7 +74,7 @@ var overState = function (game) {
 
 overState.prototype = {
     create: function () {
-        var string = " Najlepszy wynik : " + bestScore + "\nKliknij aby sprobowac ponownie";
+        var string = " Najlepszy wynik : " + bestScore + "\nTwój wynik to :" + score + "\nKliknij aby sprobowac ponownie";
 
         this.tf_start = game.add.text(game.world.centerX, game.world.centerY, string, fontAssets.counterFontStyle);
         this.tf_start.align = 'center';
@@ -311,7 +312,7 @@ gameState.prototype = {
             var friend = this.friends.create(x, y, 'friend');
             friend.anchor.set(0.5, 0.5);
             friend.body.angularVelocity = game.rnd.integerInRange(0, 100);
-            friend.lifespan = 8000;
+            friend.lifespan = 5000;
 
             var randomAngle = game.math.degToRad(game.rnd.angle());
             var randomVelocity = game.rnd.integerInRange(0, 500);
@@ -402,7 +403,7 @@ gameState.prototype = {
         ship.kill();
         asteroid.kill();
         this.resetAsteroids(asteroid.key, true);
-        
+
         shipProperties.isLive = false;
         this.shipLives--;
         this.tf_lives.text = this.shipLives;
@@ -448,6 +449,7 @@ gameState.prototype = {
     endGame: function () {
         if (this.score > bestScore)
             bestScore = this.score;
+        score = this.score
         game.state.start(states.over);
     },
 
