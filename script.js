@@ -29,7 +29,7 @@ var bulletProperties = {
     speed: 500,
     interval: 250,
     lifespan: 4000,
-    maxCount: 50,
+    maxCount: 500,
     destroyed: 0
 };
 
@@ -235,7 +235,7 @@ gameState.prototype = {
         this.friends.enableBody = true;
         this.friends.physicsBodyType = Phaser.Physics.ARCADE;
 
-        this.explosion.createMultiple(80, 'explosion', 0);
+        this.explosion.createMultiple(800, 'explosion', 0);
         this.explosion.setAll('anchor.x', 0.5);
         this.explosion.setAll('anchor.y', 0.5);
         this.explosion.callAll('animations.add', 'animations', 'explode', null, 30);
@@ -316,7 +316,7 @@ gameState.prototype = {
             var randomAngle = game.math.degToRad(game.rnd.angle());
             var randomVelocity = game.rnd.integerInRange(0, 500);
 
-            this.intervalFriend += game.time.now + 10000
+            this.intervalFriend = game.time.now + 15000
         }
     },
 
@@ -337,7 +337,7 @@ gameState.prototype = {
             life.height = 20;
             life.anchor.set(0.5, 0.5);
             life.lifespan = 5000;
-            this.intervalLife += game.time.now + 10000;
+            this.intervalLife = game.time.now + 10000;
         }
     },
 
