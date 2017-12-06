@@ -64,17 +64,17 @@ var fontAssets = {
 var score = 0;
 var bestScore = 0;
 
-var mainState = function (game) {
+var mainState = function(game) {
     this.tf_start;
 };
 
-var overState = function (game) {
+var overState = function(game) {
     this.tf_start
 };
 
 overState.prototype = {
-    create: function () {
-        var string = " Najlepszy wynik : " + bestScore + "\nTwój wynik to :" + score + "\nKliknij aby sprobowac ponownie";
+    create: function() {
+        var string = " Najlepszy wynik: " + bestScore + "\nTwój wynik to: " + score + "\nKliknij aby spróbować ponownie";
 
         this.tf_start = game.add.text(game.world.centerX, game.world.centerY, string, fontAssets.counterFontStyle);
         this.tf_start.align = 'center';
@@ -82,15 +82,14 @@ overState.prototype = {
         game.input.onDown.addOnce(this.startGame, this);
     },
 
-    startGame: function () {
+    startGame: function() {
         game.state.start(states.game);
     }
 }
 
 mainState.prototype = {
-
-    create: function () {
-        var startInstructions = 'Kliknij aby zaczac';
+    create: function() {
+        var startInstructions = 'Kliknij, aby zacząć';
 
         this.tf_start = game.add.text(game.world.centerX, game.world.centerY, startInstructions, fontAssets.counterFontStyle);
         this.tf_start.align = 'center';
@@ -99,12 +98,12 @@ mainState.prototype = {
         game.input.onDown.addOnce(this.startGame, this);
     },
 
-    startGame: function () {
+    startGame: function() {
         game.state.start(states.game);
     }
 };
 
-var gameState = function (game) {
+var gameState = function(game) {
     this.ship;
 
     this.background;
@@ -134,9 +133,9 @@ var gameState = function (game) {
     this.friends;
     this.intervalFriend = 10000;
 };
-gameState.prototype = {
 
-    preload: function () {
+gameState.prototype = {
+    preload: function() {
         game.load.baseURL = 'http://examples.phaser.io/assets/';
         game.load.crossOrigin = 'anonymous';
         game.load.image('background', 'games/invaders/starfield.png');
@@ -151,7 +150,7 @@ gameState.prototype = {
 
     },
 
-    create: function () {
+    create: function() {
         this.init();
         this.initGraphics();
         this.initPhysics();
@@ -160,8 +159,7 @@ gameState.prototype = {
         this.resetAsteroids('asteroid2');
     },
 
-    update: function () {
-
+    update: function() {
         this.checkPlayerInput();
         this.createLife();
         this.createFriend();
@@ -178,7 +176,7 @@ gameState.prototype = {
         }
     },
 
-    init: function () {
+    init: function() {
         this.shipLives = 3;
         this.bulletInterval = 0;
         this.score = 0;
@@ -190,8 +188,7 @@ gameState.prototype = {
         this.intervalLife = 5000;
     },
 
-    initGraphics: function () {
-
+    initGraphics: function() {
         this.background = game.add.sprite(0, 0, 'background');
         this.background.width = gameProperties.width;
         this.background.height = gameProperties.height;
@@ -211,10 +208,9 @@ gameState.prototype = {
         this.tf_score = game.add.text(gameProperties.width - 100, 10, "0", fontAssets.counterFontStyle);
         this.tf_score.align = 'right';
         this.tf_score.anchor.set(1, 0);
-
     },
 
-    initPhysics: function () {
+    initPhysics: function() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.physics.enable(this.ship, Phaser.Physics.ARCADE);
 
@@ -240,18 +236,16 @@ gameState.prototype = {
         this.explosion.setAll('anchor.x', 0.5);
         this.explosion.setAll('anchor.y', 0.5);
         this.explosion.callAll('animations.add', 'animations', 'explode', null, 30);
-
-
     },
 
-    initKeyboard: function () {
+    initKeyboard: function() {
         this.keyLeft = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
         this.keyRight = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
         this.keyUp = game.input.keyboard.addKey(Phaser.Keyboard.UP);
         this.keySpace = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     },
 
-    checkPlayerInput: function () {
+    checkPlayerInput: function() {
         if (this.keyLeft.isDown) {
             this.ship.body.angularVelocity = -shipProperties.angularVelocity;
         } else if (this.keyRight.isDown) {
@@ -266,12 +260,12 @@ gameState.prototype = {
             this.ship.body.acceleration.set(0);
         }
 
-        if (this.keySpace.isDown && shipProperties.isLive) {
+        if ((this.keySpace.isDown || game.input.activePointer.leftButton.isDown) && shipProperties.isLive) {
             this.fire();
         }
     },
 
-    checkBoundaries: function (sprite) {
+    checkBoundaries: function(sprite) {
         if (sprite.x < 0) {
             sprite.x = game.width;
         } else if (sprite.x > game.width) {
@@ -285,7 +279,7 @@ gameState.prototype = {
         }
     },
 
-    fire: function () {
+    fire: function() {
         if (game.time.now > this.bulletInterval) {
             var bullet = this.bullets.getFirstExists(false);
 
@@ -304,7 +298,7 @@ gameState.prototype = {
         }
     },
 
-    createFriend: function () {
+    createFriend: function() {
         if (game.time.now > this.intervalFriend) {
             var y = game.rnd.integerInRange(0, gameProperties.width - 25);
             var x = game.rnd.integerInRange(0, gameProperties.height - 25);
@@ -328,7 +322,7 @@ gameState.prototype = {
         bulletProperties.speed *= 1.5;
     },
 
-    createLife: function () {
+    createLife: function() {
         if (game.time.now > this.intervalLife) {
             var y = game.rnd.integerInRange(0, gameProperties.width);
             var x = game.rnd.integerInRange(0, gameProperties.height);
@@ -342,18 +336,18 @@ gameState.prototype = {
         }
     },
 
-    bulletHitsLifes: function (bullet, life) {
+    bulletHitsLifes: function(bullet, life) {
         life.kill();
         bullet.kill();
         this.shipLives++;
         this.tf_lives.text = this.shipLives;
-
     },
 
-    createAsteroid: function (x, y, type, count) {
+    createAsteroid: function(x, y, type, count) {
         if (count === undefined) {
             count = 1;
         }
+
         for (var i = 0; i < count; i++) {
             var asteroid = this.asteroids.create(x, y, type);
             asteroid.anchor.set(0.5, 0.5);
@@ -367,8 +361,9 @@ gameState.prototype = {
         }
     },
 
-    resetAsteroids: function (name, killShip) {
+    resetAsteroids: function(name, killShip) {
         if (asteroidProperties[name].exists <= bulletProperties.destroyed * 1.2 || killShip) {
+
             for (var i = 0; i < this.asteroidsCount; i++) {
                 var side = Math.round(Math.random());
                 var x;
@@ -381,12 +376,13 @@ gameState.prototype = {
                     x = Math.round() * gameProperties.screenWidth;
                     y = Math.round(Math.random()) * gameProperties.screeHeight;
                 }
+
                 this.createAsteroid(x, y, name);
             }
         }
     },
 
-    bulletHitsAsteroid: function (bullet, asteroid) {
+    bulletHitsAsteroid: function(bullet, asteroid) {
         bullet.kill();
         asteroid.kill();
 
@@ -399,7 +395,7 @@ gameState.prototype = {
         exp.animations.play('explode', null, false, true);
     },
 
-    shipHitsAsteroid: function (ship, asteroid) {
+    shipHitsAsteroid: function(ship, asteroid) {
         ship.kill();
         asteroid.kill();
         this.resetAsteroids(asteroid.key, true);
@@ -412,14 +408,14 @@ gameState.prototype = {
             game.time.events.add(Phaser.Timer.SECOND * shipProperties.deadTime, this.resetShip, this);
         } else {
             game.time.events.add(Phaser.Timer.SECOND * shipProperties.deadTime, this.endGame, this);
-
         }
+
         var exp = this.explosion.getFirstExists(false);
         exp.reset(ship.x, ship.y);
         exp.animations.play('explode', null, false, true);
     },
 
-    resetShip: function () {
+    resetShip: function() {
         this.ship = game.add.sprite(shipProperties.startX, shipProperties.startY, 'ship');
         this.ship.angle = 270;
         this.ship.anchor.set(0.5, 0.5);
@@ -432,30 +428,29 @@ gameState.prototype = {
         game.time.events.repeat(Phaser.Timer.SECOND * shipProperties.blinkDelay, 3 / shipProperties.blinkDelay, this.shipBlink, this);
     },
 
-    shipReady: function () {
+    shipReady: function() {
         shipProperties.isReady = true;
         this.ship.visible = true;
     },
 
-    shipBlink: function () {
+    shipBlink: function() {
         this.ship.visible = !this.ship.visible;
     },
 
-    updateScore: function (score) {
+    updateScore: function(score) {
         this.score += score;
         this.tf_score.text = this.score;
     },
 
-    endGame: function () {
+    endGame: function() {
         if (this.score > bestScore)
             bestScore = this.score;
+
         score = this.score
         game.state.start(states.over);
     },
-
-
-
 }
+
 game.state.add(states.game, gameState);
 game.state.add(states.main, mainState);
 game.state.add(states.over, overState);
